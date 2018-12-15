@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>MustParking</title>
+  </head>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<!-- For the map -->
+<style media="screen">
+
+                      body,html { height: 100%;font-family:Verdana,sans-serif, Arial;color:#555;margin: 0;/*EOL*/font-size:12px; padding: 0; background:#fafafa}
+
+                      .loading{
+                          background-image: url(loading.gif);
+                          background-position: right center;
+                          background-repeat: no-repeat;
+                      }
+                      .ui-autocomplete .highlight {
+                          text-decoration: underline;
+                      }
+                      .ui-autocomplete{
+                      }
+                      /*marker css*/
+                      .map_marker{
+                          position:relative;width:34px;height:48px
+                      }
+                      /*marker text span css*/
+                      .my-div-span{
+                          position: absolute;left:1.5em;right: 1em;top:1.4em;bottom:2.5em;font-size:9px;font-weight:bold;width:1px;color:black;
+                      }
+                      .tab-details{
+                          width:300px;padding:3px;font-size: 11px;text-align:left
+                      }
+                      .tab-details th{
+                          white-space:nowrap
+                      }
+                      .details-header{
+                          padding: 0 12px;color:green;font-size:13px;
+                      }
+                      .details-list{
+                          list-style-type:decimal;color:green; padding:2px 2px 0 30px;
+                      }
+                      #result{
+                          border-top: 1px solid #e9e9e9;padding:10px; margin-top: 12px;
+                      }
+                      #suggestdetail{
+                          border-bottom: 1px solid #e9e9e9;display: none
+                      }
+
+                      .searchbox-title{
+                          padding: 5px 0;font-size:13px;color:#222
+                      }
+                      .searchbox-container{
+                          padding: 0 12px 0 17px;line-height:20px
+                      }
+                      .txt-search{
+                          width: 254px;margin-right: 10px;padding:5px;border:1px solid #ddd;color:#555;
+                      }
+
+                      /*map css **/
+                      #map-container {
+                          position: absolute;left: 312px; top: 46px;right: 2px; bottom: 2px;border: 1px solid #cccccc;
+                      }
+                      #menu{
+                          position: absolute;left: 2px; top: 46px;width: 306px;bottom: 2px;border: 1px solid #cccccc;background-color: #FAFAFA;overflow-x:hidden;overflow-y: auto;
+                      }
+                      li{
+                          padding:0 5px 10px 0;cursor:pointer;color: #333;
+                      }
+                      li:hover{
+                          color:#00adff;cursor:pointer;text-decoration:underline
+                      }
+                      .top-div{
+                          border-bottom: 1px solid #e9e9e9;padding:10px 12px;background:#fff;
+                      }
+                      #ui-id-1{
+                          width: 20em !important;
+                          border: none;
+                          word-wrap: break-word !important;
+                          background: #FFF 50% bottom repeat-x;
+                          color: #fff;
+                          height: 40%;
+                          overflow: scroll;
+                      }
+                      ::-webkit-scrollbar {
+                          width: 5px;
+                          height: 12px;
+                      }
+                      ::-webkit-scrollbar-thumb {
+                          background: #4DB6AC;
+                          border-radius: 10px;
+                      }
+
+</style>
+<style media="screen">
+  * { box-sizing: border-box; }
+body {
+  font: 16px Arial;
+}
+.autocomplete {
+  /*the container must be positioned relative:*/
+  position: relative;
+  display: inline-block;
+}
+input {
+  border: 1px solid transparent;
+  background-color: #f1f1f1;
+  padding: 10px;
+  font-size: 16px;
+}
+input[type=text] {
+  background-color: #f1f1f1;
+  width: 100%;
+}
+input[type=submit] {
+  background-color: DodgerBlue;
+  color: #fff;
+}
+.autocomplete-items {
+  position: absolute;
+  border: 1px solid #d4d4d4;
+  border-bottom: none;
+  border-top: none;
+  z-index: 99;
+  /*position the autocomplete items to be the same width as the container:*/
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+.autocomplete-items div {
+  padding: 10px;
+  cursor: pointer;
+  background-color: #fff;
+  border-bottom: 1px solid #d4d4d4;
+}
+.autocomplete-items div:hover {
+  /*when hovering an item:*/
+  background-color: #e9e9e9;
+}
+.autocomplete-active {
+  /*when navigating through the items using the arrow keys:*/
+  background-color: DodgerBlue !important;
+  color: #ffffff;
+}
+</style>
+<script src="https://apis.mapmyindia.com/advancedmaps/v1/ac4fpug3kli1ac1ts14rgjfysp5y6x8f/map_load?v=0.1"></script>
+  <body>
+
+      <form autocomplete="off" action="/action_page.php">
+        <div class="autocomplete" style="width:300px;">
+          <input id="myInput" type="text" name="myCountry" placeholder="Country">
+        </div>
+      </form>
+      <br>
+      <br>
+      <br>
+       <div id="map-container"></div>
+  </body>
+<script type="text/javascript">
+var countriesU = [
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "Mehrauli Gurgaon Road, DLF City Phase 2, Near MG Road Metro Station, Gurugram, Haryana, 122008",
+            "latitude": 28.480867,
+            "longitude": 77.0802540000001,
+            "eLoc": "B7S777",
+            "entryLatitude": 28.47993771,
+            "entryLongitude": 77.08063507,
+            "placeName": "MGF Metropolitan Mall",
+            "alternateName": "Metropolitan Mall,mgf Mall",
+            "keywords": [
+                "SHPMAL"
+            ],
+            "addressTokens": {},
+            "p": 3,
+            "orderIndex": 1
+        },
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "Vishwakarma Road, Cyber Hub, DLF Cyber City, DLF City Phase 2, Gurugram, Haryana, 122008",
+            "latitude": 28.4956090000001,
+            "longitude": 77.0886,
+            "eLoc": "42ATSC",
+            "entryLatitude": 28.496087,
+            "entryLongitude": 77.087813,
+            "placeName": "DLF Cyber City",
+            "alternateName": "",
+            "keywords": [
+                "SHPHUB"
+            ],
+            "addressTokens": {},
+            "p": 3,
+            "orderIndex": 2
+        },
+        {
+            "type": "SUB_LOCALITY",
+            "typeX": 6,
+            "placeAddress": "Laxman Vihar, Gurugram, Haryana, 122006",
+            "latitude": 28.483369,
+            "longitude": 77.007841,
+            "eLoc": "CR3J63",
+            "entryLatitude": 0,
+            "entryLongitude": 0,
+            "placeName": "Phase 2",
+            "alternateName": "",
+            "keywords": [],
+            "addressTokens": {},
+            "p": 3433,
+            "orderIndex": 3
+        },
+        {
+            "type": "SUB_LOCALITY",
+            "typeX": 6,
+            "placeAddress": "Bhimgarh Kheri, Gurugram, Haryana, 122001",
+            "latitude": 28.4862430000001,
+            "longitude": 77.0138450000001,
+            "eLoc": "5GL53F",
+            "entryLatitude": 0,
+            "entryLongitude": 0,
+            "placeName": "Phase 2",
+            "alternateName": "",
+            "keywords": [],
+            "addressTokens": {},
+            "p": 10671,
+            "orderIndex": 4
+        },
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "Vishwakarma Road, Block C, DLF City Phase 2, Gurugram, Haryana, 122008",
+            "latitude": 28.4875260000001,
+            "longitude": 77.0929570000001,
+            "eLoc": "LNTAZS",
+            "entryLatitude": 28.48759,
+            "entryLongitude": 77.093017,
+            "placeName": "Phase 2 Rapid Metro Station",
+            "alternateName": "Phase 2",
+            "keywords": [
+                "TRNMET"
+            ],
+            "addressTokens": {},
+            "p": 4796,
+            "orderIndex": 5
+        },
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "Golf Course Road, Sector 28, Gurugram, Haryana, 122002",
+            "latitude": 28.471351,
+            "longitude": 77.0939190000001,
+            "eLoc": "EN1IOU",
+            "entryLatitude": 28.47135,
+            "entryLongitude": 77.093873,
+            "placeName": "Phase 1 Rapid Metro Station",
+            "alternateName": "",
+            "keywords": [
+                "TRNMET"
+            ],
+            "addressTokens": {},
+            "p": 6626,
+            "orderIndex": 6
+        },
+        {
+            "type": "LOCALITY",
+            "typeX": 5,
+            "placeAddress": "Gurugram, Haryana, 122008",
+            "latitude": 28.4849350000001,
+            "longitude": 77.0849630000001,
+            "eLoc": "YY7C3E",
+            "entryLatitude": 0,
+            "entryLongitude": 0,
+            "placeName": "DLF City Phase 2",
+            "alternateName": "",
+            "keywords": [],
+            "addressTokens": {},
+            "p": 702,
+            "orderIndex": 7
+        },
+        {
+            "type": "SUB_LOCALITY",
+            "typeX": 6,
+            "placeAddress": "DLF City Phase 2, Gurugram, Haryana, 122008",
+            "latitude": 28.482677,
+            "longitude": 77.0894640000001,
+            "eLoc": "73J2F0",
+            "entryLatitude": 0,
+            "entryLongitude": 0,
+            "placeName": "Block J",
+            "alternateName": "",
+            "keywords": [],
+            "addressTokens": {},
+            "p": 716,
+            "orderIndex": 8
+        },
+        {
+            "type": "SUB_LOCALITY",
+            "typeX": 6,
+            "placeAddress": "DLF City Phase 2, Gurugram, Haryana, 122008",
+            "latitude": 28.4832510000001,
+            "longitude": 77.083489,
+            "eLoc": "DJX9S2",
+            "entryLatitude": 0,
+            "entryLongitude": 0,
+            "placeName": "Block K",
+            "alternateName": "",
+            "keywords": [],
+            "addressTokens": {},
+            "p": 727,
+            "orderIndex": 9
+        },
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "Mehrauli Gurgaon Road, Block J, DLF City Phase 2, Gurugram, Haryana, 122008",
+            "latitude": 28.4813560000001,
+            "longitude": 77.092989,
+            "eLoc": "2ACTC4",
+            "entryLatitude": 28.481393,
+            "entryLongitude": 77.093006,
+            "placeName": "Sikanderpur Metro Station",
+            "alternateName": "",
+            "keywords": [
+                "TRNMET"
+            ],
+            "addressTokens": {},
+            "p": 730,
+            "orderIndex": 10
+        },
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "1/2, Opposite Vivanta By Taj, Swami Vivakananda Road, MG Road, Old Madras Road, Bengaluru, Karnataka, 560008",
+            "latitude": 12.9734490000001,
+            "longitude": 77.620438,
+            "eLoc": "Q2285V",
+            "entryLatitude": 12.973932,
+            "entryLongitude": 77.620066,
+            "placeName": "1 MG Road Mall",
+            "alternateName": "One Mg Road Mall,1 Mg Lido Mall",
+            "keywords": [
+                "SHPMAL"
+            ],
+            "addressTokens": {},
+            "p": 841,
+            "orderIndex": 1
+        },
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "Mall Road, Gurugram, Haryana, 122002",
+            "latitude": 28.4792170000001,
+            "longitude": 77.0799640000001,
+            "eLoc": "WMNJZO",
+            "entryLatitude": 28.479318,
+            "entryLongitude": 77.080064,
+            "placeName": "MG Road Metro Station Gate No 1",
+            "alternateName": "Syska Led Mg Road Metro Station Gate No 1",
+            "keywords": [
+                "COMGAT"
+            ],
+            "addressTokens": {},
+            "p": 6903,
+            "orderIndex": 2
+        },
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "Residency Road, Bangalore Central Mall, Ashok Nagar, Bengaluru, Karnataka, 560025",
+            "latitude": 12.9738330000001,
+            "longitude": 77.6112210000001,
+            "eLoc": "8J23DC",
+            "entryLatitude": 12.973788,
+            "entryLongitude": 77.611238,
+            "placeName": "MG Road Bus Stop G2",
+            "alternateName": "",
+            "keywords": [
+                "TRNBUS"
+            ],
+            "addressTokens": {},
+            "p": 17843,
+            "orderIndex": 3
+        },
+        {
+            "type": "STREET",
+            "typeX": 11,
+            "placeAddress": "Treasure Island Mall, Kanchan Bagh, Indore, Madhya Pradesh, 452001",
+            "latitude": 22.7217047515831,
+            "longitude": 75.8783170084158,
+            "eLoc": "YXZR2Y",
+            "entryLatitude": 0,
+            "entryLongitude": 0,
+            "placeName": "MG Road",
+            "alternateName": "Mahatama Ghandi Road",
+            "keywords": [],
+            "addressTokens": {},
+            "p": 24000,
+            "orderIndex": 4
+        },
+        {
+            "type": "STREET",
+            "typeX": 11,
+            "placeAddress": "Mall Of Mysore, Indira Nagar, Ittigegud, Mysuru, Karnataka, 570010",
+            "latitude": 12.2982294221106,
+            "longitude": 76.663992,
+            "eLoc": "Y8715Y",
+            "entryLatitude": 0,
+            "entryLongitude": 0,
+            "placeName": "MG Road",
+            "alternateName": "Chamundi Hill Road",
+            "keywords": [],
+            "addressTokens": {},
+            "p": 24000,
+            "orderIndex": 5
+        },
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "5th Floor, 1 MG Road Mall, Trinity Circle, 1/2 Swami Vivekananda Road, Opp Vivanta By Taj, Bengaluru, Karnataka, 560008",
+            "latitude": 12.9734490000001,
+            "longitude": 77.620438,
+            "eLoc": "3SB0FE",
+            "entryLatitude": 12.973932,
+            "entryLongitude": 77.620066,
+            "placeName": "Blimey",
+            "alternateName": "",
+            "keywords": [
+                "FODPUB"
+            ],
+            "addressTokens": {},
+            "p": 6174,
+            "orderIndex": 6
+        },
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "5th Floor, Restaurant 3, 1 MG Road Mall, Trinity Circle, 1/2 Swami Vivekananda Road, Opp Vivanta By Taj, Bengaluru, Karnataka, 560008",
+            "latitude": 12.9734490000001,
+            "longitude": 77.620438,
+            "eLoc": "PBZ10H",
+            "entryLatitude": 12.973932,
+            "entryLongitude": 77.620066,
+            "placeName": "Fort Kochi",
+            "alternateName": "",
+            "keywords": [
+                "FODCON"
+            ],
+            "addressTokens": {},
+            "p": 6387,
+            "orderIndex": 7
+        },
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "Level5, 1/2, 1 MG Road Mall, Trinity Circle, Swami Vivekananda Road, Opposite Vivanta By Taj, Bengaluru, Karnataka, 560008",
+            "latitude": 12.9734490000001,
+            "longitude": 77.620438,
+            "eLoc": "UQJGNJ",
+            "entryLatitude": 12.973932,
+            "entryLongitude": 77.620066,
+            "placeName": "Mamma Mexicana",
+            "alternateName": "",
+            "keywords": [
+                "FODCON"
+            ],
+            "addressTokens": {},
+            "p": 6404,
+            "orderIndex": 8
+        },
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "Shop No 24, 25, 26, Platina, Opposite Bristol Hotel, MG Road, Sector 28, Gurugram, Haryana, 122002",
+            "latitude": 28.480287,
+            "longitude": 77.093039,
+            "eLoc": "BABTUY",
+            "entryLatitude": 28.480099,
+            "entryLongitude": 77.092294,
+            "placeName": "Maruti Suzuki NEXA Pasco Automobiles",
+            "alternateName": "Maruti Nexa,maruti Suzuki Nexa Mg Road",
+            "keywords": [
+                "SHPAUT"
+            ],
+            "addressTokens": {},
+            "p": 6407,
+            "orderIndex": 9
+        },
+        {
+            "type": "POI",
+            "typeX": 7,
+            "placeAddress": "First Floor, R-2 And 3, 1 MG Road Mall, Trinity Circle, 1/2 Swami Vivekananda Road, Opp Vivanta By Taj, Bengaluru, Karnataka, 560008",
+            "latitude": 12.973801,
+            "longitude": 77.620348,
+            "eLoc": "6O4FFF",
+            "entryLatitude": 12.973953,
+            "entryLongitude": 77.620055,
+            "placeName": "Cha Bar",
+            "alternateName": "",
+            "keywords": [
+                "FODCOF"
+            ],
+            "addressTokens": {},
+            "p": 6407,
+            "orderIndex": 10
+        }
+    ];
+</script>
+<script type="text/javascript">
+  var countries = [];
+  var selected = -1;
+  var callLat = -1;
+  var callLong = -1;
+  for(var i=0;i<countriesU.length;i++){
+    countries.push({'address':countriesU[i]["placeAddress"],'id':i});
+  }
+  function autocomplete(inp, arr) {
+  /*the autocomplete function takes two arguments,
+  the text field element and an array of possible autocompleted values:*/
+  var currentFocus;
+  /*execute a function when someone writes in the text field:*/
+  inp.addEventListener("input", function(e) {
+      console.log("Input changed")
+      var a, b, i, val = this.value;
+      /*close any already open lists of autocompleted values*/
+      closeAllLists();
+      if (!val) { return false;}
+      currentFocus = -1;
+  // $.ajax({
+  //   url: 'https://atlas.mapmyindia.com/api/places/search/json?',
+  //   method: 'GET',
+  //   data: {"query":"parking"},
+  //   beforeSend: function(xhr){xhr.setRequestHeader('Authorization', '3e6f0487-72c0-405b-a30b-b559af4301af');},
+  //   success: function(data){
+  //     console.log('succes: '+data);
+  //   }
+  // });
+
+      /*create a DIV element that will contain the items (values):*/
+      a = document.createElement("DIV");
+      a.setAttribute("id", this.id + "autocomplete-list");
+      a.setAttribute("class", "autocomplete-items");
+      /*append the DIV element as a child of the autocomplete container:*/
+      this.parentNode.appendChild(a);
+      /*for each item in the array...*/
+      for (i = 0; i < arr.length; i++) {
+        /*check if the item starts with the same letters as the text field value:*/
+        if (arr[i]["address"].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+          /*create a DIV element for each matching element:*/
+          b = document.createElement("DIV");
+          /*make the matching letters bold:*/
+
+          b.innerHTML = "<strong>" + arr[i]["address"].substr(0, val.length) + "</strong>";
+          b.innerHTML += arr[i]["address"].substr(val.length);
+          /*insert a input field that will hold the current array item's value:*/
+          b.innerHTML += "<input type='hidden' value='" + arr[i]["address"] + "' class = 'options-available'>";
+          /*execute a function when someone clicks on the item value (DIV element):*/
+              b.addEventListener("click", function(e) {
+              /*insert the value for the autocomplete text field:*/
+              inp.value = this.getElementsByTagName("input")[0].value;
+              /*close the list of autocompleted values,
+              (or any other open lists of autocompleted values:*/
+              closeAllLists();
+          });
+          a.appendChild(b);
+        }
+      }
+  });
+  /*execute a function presses a key on the keyboard:*/
+  inp.addEventListener("keydown", function(e) {
+      var x = document.getElementById(this.id + "autocomplete-list");
+      if (x) x = x.getElementsByTagName("div");
+      if (e.keyCode == 40) {
+        /*If the arrow DOWN key is pressed,
+        increase the currentFocus variable:*/
+        currentFocus++;
+        /*and and make the current item more visible:*/
+        addActive(x);
+      } else if (e.keyCode == 38) { //up
+        /*If the arrow UP key is pressed,
+        decrease the currentFocus variable:*/
+        currentFocus--;
+        /*and and make the current item more visible:*/
+        addActive(x);
+      } else if (e.keyCode == 13) {
+        /*If the ENTER key is pressed, prevent the form from being submitted,*/
+        e.preventDefault();
+        if (currentFocus > -1) {
+          /*and simulate a click on the "active" item:*/
+
+          if (x){
+            x[currentFocus].click();
+            selected = $("#myInput")[0].value;
+            for(var i=0;i<countriesU.length;i++){
+              if(countriesU[i].placeAddress == selected){
+                console.log(countriesU[i]);
+                callLat = countriesU[i]["latitude"];
+                callLong = countriesU[i]["longitude"];
+                console.log(callLat);
+                console.log(callLong);
+              }
+            }
+          }
+        }
+      }
+  });
+  function addActive(x) {
+    /*a function to classify an item as "active":*/
+    if (!x) return false;
+    /*start by removing the "active" class on all items:*/
+    removeActive(x);
+    if (currentFocus >= x.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = (x.length - 1);
+    /*add class "autocomplete-active":*/
+    x[currentFocus].classList.add("autocomplete-active");
+  }
+  function removeActive(x) {
+    /*a function to remove the "active" class from all autocomplete items:*/
+    for (var i = 0; i < x.length; i++) {
+      x[i].classList.remove("autocomplete-active");
+    }
+  }
+  function closeAllLists(elmnt) {
+    /*close all autocomplete lists in the document,
+    except the one passed as an argument:*/
+    var x = document.getElementsByClassName("autocomplete-items");
+    for (var i = 0; i < x.length; i++) {
+      if (elmnt != x[i] && elmnt != inp) {
+      x[i].parentNode.removeChild(x[i]);
+    }
+  }
+}
+/*execute a function when someone clicks in the document:*/
+document.addEventListener("click", function (e) {
+    closeAllLists(e.target);
+});
+}
+</script>
+
+<script>
+autocomplete(document.getElementById("myInput"), countries);
+</script>
+<script type="text/javascript">
+   var result_string = '';
+   var latitudeArr = [];
+   var longitudeArr = [];
+   var url_result;
+   var all_result = [];
+   var show_marker = new Array();
+   var isselected = 0;
+   var map;
+   var centre = new L.LatLng(22.268764, 82.390136);
+
+   /**map initialization with tiles of MapmyIndia with MapmyIndia.Map**/
+   var map = new MapmyIndia.Map('map-container', {center: centre, zoomControl: true, hybrid: true});
+
+   /***function that modifies both center map position and zoom level.***/
+   map.setView(centre, 4);
+   MapmyIndia.geo(map_o[0]);
+       var current_lat="";
+       var current_lng="";
+           if (navigator.geolocation) {
+               navigator.geolocation.getCurrentPosition(showPosition);
+           } else {
+               x.innerHTML = "Geolocation is not supported by this browser.";
+           }
+
+       function showPosition(position) {
+           current_lat=position.coords.latitude;
+           current_lng=position.coords.longitude;
+       }
+       $('.srch_dv').hide();
+
+    /***autosuggest function.***/
+    function show_markers(num, pos, detail_num) {
+       hideLoader();
+       var html="<img class='map_marker' src=" + "'https://maps.mapmyindia.com/images/2.png'>" + '<span class="my-div-span" style="left: 1.6em !important;">' + num + '</span>';
+       /*creating a div icon*/
+       var icon_marker = L.divIcon({className: 'my-div-icon',
+           html:html,
+           iconSize:[10, 10],
+           popupAnchor: [12, -10]
+       });
+       var m = L.marker(pos, {icon: icon_marker}).bindPopup('<table class="tab-details">' + details[detail_num] + '</table>').openPopup();
+       m.addTo(map);
+       map.setView(pos, 17);
+       show_marker.push(m);
+    }
+    function remove_markers() {
+       if (show_marker.length > 0) {
+           map.removeLayer(show_marker[0]);
+       }
+
+    }
+    function result() {
+       if (isselected == 0) {
+           var menu = $("#autocomplete").autocomplete("widget");
+           $(menu[0].children[0]).click();
+           console.log($(menu[0].children[0]).text());
+           document.getElementById('autocomplete').value = $(menu[0].children[0]).text();
+           document.getElementById('suggestdetail').innerHTML = result_string + '</ul></div>';
+       }
+    }
+    function hideLoader() {
+       /**hide loader**/
+       $("#autocomplete").removeClass("loading");
+    }
+    function showLoader() {
+       $("#autocomplete").addClass("ui-autocomplete-loading");
+    }
+    function clearDiv(id) {
+       document.getElementById(id).innerHTML = "";
+    }
+    function showDiv(id) {
+      document.getElementById(id).style.display = "block";
+    }
+    function hideDiv(id) {
+       document.getElementById(id).style.display = "none";
+    }
+    $(function () {
+       $(document).on('click', 'input[type=text]', function () {
+           this.select();
+       });
+    });
+</script>
+</html>
