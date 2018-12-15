@@ -598,6 +598,7 @@ var countriesU = [
                 callLong = countriesU[i]["longitude"];
                 console.log(callLat);
                 console.log(callLong);
+                setMap(callLat,callLong)
               }
             }
           }
@@ -640,7 +641,10 @@ document.addEventListener("click", function (e) {
 <script>
 autocomplete(document.getElementById("myInput"), countries);
 </script>
+
+
 <script type="text/javascript">
+
    var result_string = '';
    var latitudeArr = [];
    var longitudeArr = [];
@@ -653,7 +657,12 @@ autocomplete(document.getElementById("myInput"), countries);
 
    /**map initialization with tiles of MapmyIndia with MapmyIndia.Map**/
    var map = new MapmyIndia.Map('map-container', {center: centre, zoomControl: true, hybrid: true});
-
+   function setMap(lat,long){
+     center = new L.LatLng(lat, long);
+     showLoader();
+     map.setView(center,20);
+     hideLoader();
+   }
    /***function that modifies both center map position and zoom level.***/
    map.setView(centre, 4);
    MapmyIndia.geo(map_o[0]);
